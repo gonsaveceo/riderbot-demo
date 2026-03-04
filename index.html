@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RiderBot ‚Äî Food Delivery Rider Assistant üáßüá©</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background: #e9eef2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  gap: 24px;
+  padding: 20px;
+}
+
+/* ‚îÄ‚îÄ‚îÄ MESSENGER FRAME ‚îÄ‚îÄ‚îÄ */
+.messenger-container {
+  width: 400px;
+  height: 720px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+/* Top status bar */
+.status-bar {
+  background: linear-gradient(135deg, #0084ff, #005ecb);
+  color: white;
+  padding: 6px 16px;
+  font-size: 11px;
+  font-weight: 500;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  letter-spacing: 0.2px;
+}
+
+/* Header */
+.messenger-header {
+  background: #fff;
+  border-bottom: 1px solid #e4e6ea;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bot-avatar {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0084ff, #005ecb);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  position: relative; flex-shrink: 0;
+}
+.online-dot {
+  width: 11px; height: 11px;
+  background: #31a24c; border-radius: 50%;
+  position: absolute; bottom: 1px; right: 1px;
+  border: 2px solid white;
+}
+.bot-info h3 { font-size: 15px; font-weight: 600; color: #050505; }
+.bot-info span { font-size: 12px; color: #65676b; }
+.header-actions { margin-left: auto; display: flex; gap: 6px; }
+.hbtn {
+  background: none; border: none; cursor: pointer;
+  font-size: 18px; padding: 4px; border-radius: 50%;
+  transition: background .2s;
+}
+.hbtn:hover { background: #f0f2f5; }
+
+/* Chat */
+.chat-area {
+  flex: 1; overflow-y: auto;
+  padding: 14px 14px 8px;
+  display: flex; flex-direction: column; gap: 6px;
+  background: #fff;
+}
+.chat-area::-webkit-scrollbar { width: 4px; }
+.chat-area::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
+
+/* Messages */
+.msg {
+  display: flex; align-items: flex-end; gap: 7px;
+  animation: pop .25s ease;
+}
+@keyframes pop {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.msg.bot  { align-self: flex-start; max-width: 88%; }
+.msg.user { align-self: flex-end;   flex-direction: row-reverse; max-width: 80%; }
+
+.av {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: linear-gradient(135deg, #0084ff, #005ecb);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; flex-shrink: 0;
+}
+.bubble-wrap { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+
+.bubble {
+  padding: 9px 13px; border-radius: 18px;
+  font-size: 13.5px; line-height: 1.5; word-wrap: break-word;
+}
+.msg.bot  .bubble { background: #f0f2f5; color: #050505; border-bottom-left-radius: 4px; }
+.msg.user .bubble { background: #0084ff; color: white; border-bottom-right-radius: 4px; }
+
+/* Typing */
+.typing-dots {
+  background: #f0f2f5; border-radius: 18px; border-bottom-left-radius: 4px;
+  padding: 12px 16px; display: flex; gap: 4px; align-items: center; width: fit-content;
+}
+.typing-dots span {
+  width: 7px; height: 7px; border-radius: 50%; background: #9299a0;
+  animation: bounce 1.3s infinite ease-in-out;
+}
+.typing-dots span:nth-child(2) { animation-delay: .18s; }
+.typing-dots span:nth-child(3) { animation-delay: .36s; }
+@keyframes bounce {
+  0%,60%,100% { transform: translateY(0); }
+  30% { transform: translateY(-5px); }
+}
+
+/* Quick replies row */
+.quick-replies {
+  padding: 8px 14px 4px; display: flex; flex-wrap: wrap; gap: 7px;
+  min-height: 40px; border-top: 1px solid #f0f2f5;
+}
+.qr {
+  padding: 7px 13px; border: 1.5px solid #0084ff; border-radius: 20px;
+  background: white; color: #0084ff; font-size: 12.5px; font-weight: 500;
+  cursor: pointer; transition: all .18s; white-space: nowrap;
+}
+.qr:hover { background: #0084ff; color: white; }
+.qr:active { transform: scale(.95); }
+
+/* Input */
+.input-area {
+  padding: 10px 14px; border-top: 1px solid #e4e6ea;
+  display: flex; align-items: center; gap: 7px; background: white;
+}
+.ibtn {
+  width: 34px; height: 34px; border-radius: 50%; border: none;
+  background: transparent; color: #0084ff; font-size: 18px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background .2s;
+}
+.ibtn:hover { background: #f0f2f5; }
+.msg-input {
+  flex: 1; padding: 9px 13px; border-radius: 20px; border: none;
+  background: #f0f2f5; font-size: 13.5px; outline: none; font-family: inherit;
+}
+.send-btn {
+  width: 34px; height: 34px; border-radius: 50%; border: none;
+  background: #0084ff; color: white; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .2s;
+}
+.send-btn:hover { background: #005ecb; }
+
+/* ‚îÄ‚îÄ‚îÄ CARDS ‚îÄ‚îÄ‚îÄ */
+.card {
+  background: white; border: 1px solid #e4e6ea;
+  border-radius: 14px; padding: 13px 14px;
+  font-size: 13px; overflow: hidden;
+}
+.card-title {
+  font-weight: 700; font-size: 14px; color: #050505; margin-bottom: 10px;
+}
+
+/* Progress card */
+.prog-card {
+  background: linear-gradient(135deg, #0084ff, #005ecb);
+  color: white; border-radius: 14px; padding: 16px;
+}
+.prog-bar-bg {
+  background: rgba(255,255,255,.3); border-radius: 6px; height: 8px; margin: 6px 0 10px;
+}
+.prog-bar-fill { height: 100%; border-radius: 6px; background: white; }
+.prog-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 4px;
+}
+.prog-stat {
+  background: rgba(255,255,255,.2); border-radius: 8px; padding: 8px; text-align: center;
+}
+.prog-stat .v { font-size: 17px; font-weight: 700; }
+.prog-stat .l { font-size: 10px; opacity: .85; margin-top: 2px; }
+
+/* Reminder card */
+.rem-card {
+  background: #fff8e1; border: 1px solid #ffe082; border-radius: 14px; padding: 13px 14px;
+}
+.rem-title { font-weight: 700; color: #7b5800; margin-bottom: 8px; }
+.rem-row { display: flex; align-items: center; gap: 7px; color: #5d4037; font-size: 13px; margin-bottom: 5px; }
+
+/* Goal plan card */
+.plan-card {
+  background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
+  border: 1px solid #a5d6a7; border-radius: 14px; padding: 14px;
+}
+.plan-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+.plan-cell {
+  background: white; border-radius: 10px; padding: 10px; text-align: center;
+}
+.plan-cell .v { font-size: 22px; font-weight: 700; color: #0084ff; }
+.plan-cell .l { font-size: 11px; color: #65676b; margin-top: 2px; }
+
+/* Location cards */
+.loc-item { padding: 10px 0; border-bottom: 1px solid #f0f2f5; }
+.loc-item:last-child { border-bottom: none; padding-bottom: 0; }
+.loc-head { display: flex; justify-content: space-between; align-items: flex-start; }
+.dist-badge {
+  font-size: 11px; background: #e8f5e9; color: #2e7d32;
+  padding: 2px 8px; border-radius: 10px; white-space: nowrap; margin-left: 6px;
+}
+.disc-badge {
+  font-size: 12px; background: #fff3cd; color: #856404;
+  padding: 4px 9px; border-radius: 7px; margin-top: 6px; display: inline-block;
+}
+.loc-btns { display: flex; gap: 6px; margin-top: 8px; }
+.lb {
+  flex: 1; padding: 6px; border-radius: 8px; font-size: 12px;
+  font-weight: 600; cursor: pointer; transition: opacity .2s; border: none;
+}
+.lb:hover { opacity: .85; }
+.lb-nav { background: #0084ff; color: white; }
+.lb-call { background: #f0f2f5; color: #050505; border: 1px solid #e4e6ea !important; }
+
+/* Petrol */
+.fuel-item { padding: 9px 0; border-bottom: 1px solid #f0f2f5; }
+.fuel-item:last-child { border-bottom: none; }
+.fuel-head { display: flex; justify-content: space-between; align-items: center; }
+.fuel-price { font-size: 14px; font-weight: 700; color: #2e7d32; }
+.fuel-disc {
+  font-size: 12px; background: #e8f5e9; color: #2e7d32;
+  padding: 3px 9px; border-radius: 7px; margin: 5px 0 0 28px; display: inline-block;
+}
+
+/* Health */
+.platform-tag {
+  display: inline-block; padding: 2px 8px; border-radius: 10px;
+  font-size: 11px; font-weight: 700; margin-right: 4px;
+}
+.tag-foodpanda { background: #d60b51; color: white; }
+.tag-pathao    { background: #e63946; color: white; }
+.tag-shohoz    { background: #1b5e20; color: white; }
+.tag-grab      { background: #00b14f; color: white; }
+
+/* Day off card */
+.dayoff-card {
+  background: linear-gradient(135deg, #f3e5f5, #fce4ec);
+  border: 1px solid #ce93d8; border-radius: 14px; padding: 14px;
+}
+.dayoff-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+.dc { background: white; border-radius: 10px; padding: 10px; text-align: center; }
+.dc .v { font-size: 20px; font-weight: 700; }
+.dc .l { font-size: 11px; color: #65676b; margin-top: 2px; }
+.dc.red .v { color: #e53935; }
+.dc.blue .v { color: #0084ff; }
+
+/* Fare */
+.fare-card {
+  background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
+  border: 1px solid #a5d6a7; border-radius: 14px; padding: 14px;
+}
+.fare-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; }
+.fare-total {
+  display: flex; justify-content: space-between;
+  border-top: 2px solid #a5d6a7; padding-top: 8px; margin-top: 4px;
+  font-weight: 700; font-size: 16px; color: #2e7d32;
+}
+
+/* Incentives */
+.incentive-section { margin-bottom: 12px; }
+.inc-row { font-size: 13px; padding: 3px 0; display: flex; gap: 6px; }
+.inc-dot { color: #0084ff; font-size: 16px; line-height: 1.2; }
+
+/* Goal option items */
+.goal-item {
+  display: flex; align-items: center; gap: 10px; padding: 10px 0;
+  border-bottom: 1px solid #f0f2f5; cursor: pointer; transition: background .18s; border-radius: 8px;
+}
+.goal-item:last-child { border-bottom: none; }
+.goal-item:hover { background: #f0f7ff; padding: 10px 6px; }
+.goal-icon { font-size: 22px; width: 32px; text-align: center; }
+.goal-info { flex: 1; }
+.goal-info strong { display: block; font-size: 14px; color: #050505; }
+.goal-info span { font-size: 12px; color: #65676b; }
+.goal-arr { color: #0084ff; font-size: 18px; font-weight: 700; }
+
+/* ‚îÄ‚îÄ‚îÄ SIDE PANEL ‚îÄ‚îÄ‚îÄ */
+.side-panel {
+  background: white; border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+  padding: 16px; width: 200px; flex-shrink: 0;
+}
+.side-panel h4 {
+  font-size: 12px; font-weight: 700; color: #65676b;
+  text-transform: uppercase; letter-spacing: .8px; margin-bottom: 12px;
+}
+.sc-btn {
+  width: 100%; padding: 9px 11px; margin-bottom: 5px;
+  border: 1px solid #e4e6ea; border-radius: 10px;
+  background: white; text-align: left; cursor: pointer;
+  font-size: 12.5px; color: #050505; transition: all .18s; display: block;
+}
+.sc-btn:hover { background: #e8f4ff; border-color: #0084ff; color: #0084ff; }
+.sc-btn.active { background: #0084ff; color: white; border-color: #0084ff; font-weight: 600; }
+.sc-btn:last-child { margin-bottom: 0; }
+
+.side-divider {
+  border: none; border-top: 1px solid #f0f2f5; margin: 12px 0;
+}
+
+.side-tip {
+  font-size: 11.5px; color: #65676b; line-height: 1.5;
+  background: #f7f8fa; border-radius: 8px; padding: 10px;
+}
+</style>
+</head>
+<body>
+
+<!-- Side panel: demo scenarios -->
+<div class="side-panel">
+  <h4>Demo Scenarios</h4>
+  <button class="sc-btn active" id="btn-welcome"    onclick="runScene('welcome')">    üëã Welcome</button>
+  <button class="sc-btn"        id="btn-goal"       onclick="runScene('goal')">       üéØ Set Income Goal</button>
+  <button class="sc-btn"        id="btn-reminder"   onclick="runScene('reminder')">   üìä Daily Check-in</button>
+  <button class="sc-btn"        id="btn-motorcycle" onclick="runScene('motorcycle')"> üîß Bike Repair</button>
+  <button class="sc-btn"        id="btn-petrol"     onclick="runScene('petrol')">     ‚õΩ Cheap Petrol</button>
+  <button class="sc-btn"        id="btn-health"     onclick="runScene('health')">     üè• Health Support</button>
+  <button class="sc-btn"        id="btn-dayoff"     onclick="runScene('dayoff')">     üò¥ Day Off</button>
+  <button class="sc-btn"        id="btn-fare"       onclick="runScene('fare')">       üí∞ Fare Check</button>
+  <button class="sc-btn"        id="btn-platform"   onclick="runScene('platform')">   ‚ùì Platform Q&amp;A</button>
+  <hr class="side-divider">
+  <div class="side-tip">
+    üí° Click any scenario above, or type freely in the chat to get a smart reply.
+  </div>
+</div>
+
+<!-- Messenger -->
+<div class="messenger-container">
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <span>üáßüá© RiderBot Bangladesh</span>
+    <span>‡ß≥<span id="earned">2,840</span> / ‡ß≥<span id="goal-disp">7,000</span> this week</span>
+  </div>
+
+  <!-- Header -->
+  <div class="messenger-header">
+    <div class="bot-avatar">üõµ<div class="online-dot"></div></div>
+    <div class="bot-info">
+      <h3>RiderBot Assistant</h3>
+      <span>üü¢ Active now ¬∑ Your delivery companion</span>
+    </div>
+    <div class="header-actions">
+      <button class="hbtn">üìû</button>
+      <button class="hbtn">‚ÑπÔ∏è</button>
+    </div>
+  </div>
+
+  <!-- Chat -->
+  <div class="chat-area" id="chat"></div>
+
+  <!-- Quick replies -->
+  <div class="quick-replies" id="qrs"></div>
+
+  <!-- Input -->
+  <div class="input-area">
+    <button class="ibtn">‚ûï</button>
+    <button class="ibtn">üì∑</button>
+    <input class="msg-input" id="inp" placeholder="Type a message‚Ä¶" onkeydown="onKey(event)">
+    <button class="send-btn" onclick="sendUser()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<script>
+// ‚îÄ‚îÄ helpers ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+let timers = [];
+function later(fn, ms) { const t = setTimeout(fn, ms); timers.push(t); return t; }
+function clearTimers() { timers.forEach(clearTimeout); timers = []; }
+
+const chat = document.getElementById('chat');
+const qrs  = document.getElementById('qrs');
+
+function scrollBottom() { chat.scrollTop = chat.scrollHeight; }
+
+function showTyping() {
+  removeTyping();
+  const d = document.createElement('div');
+  d.className = 'msg bot'; d.id = 'typing';
+  d.innerHTML = `<div class="av">üõµ</div><div class="bubble-wrap"><div class="typing-dots"><span></span><span></span><span></span></div></div>`;
+  chat.appendChild(d); scrollBottom();
+}
+function removeTyping() { const el = document.getElementById('typing'); if (el) el.remove(); }
+
+function appendMsg(type, html, card) {
+  removeTyping();
+  const d = document.createElement('div');
+  d.className = `msg ${type}`;
+  if (type === 'bot') {
+    d.innerHTML = `<div class="av">üõµ</div><div class="bubble-wrap">${html ? `<div class="bubble">${html}</div>` : ''}${card ? card : ''}</div>`;
+  } else {
+    d.innerHTML = `<div class="bubble-wrap"><div class="bubble">${html}</div></div>`;
+  }
+  chat.appendChild(d); scrollBottom();
+}
+
+function setQR(replies) {
+  qrs.innerHTML = replies.map(r =>
+    `<button class="qr" onclick="handleQR(this,'${escAttr(r)}')">${r}</button>`
+  ).join('');
+}
+function escAttr(s) { return s.replace(/'/g, "\\'"); }
+
+function handleQR(btn, text) {
+  appendMsg('user', text);
+  qrs.innerHTML = '';
+  later(() => { showTyping(); later(() => smartReply(text.toLowerCase()), 750); }, 200);
+}
+
+// ‚îÄ‚îÄ scene runner ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+let activeScene = 'welcome';
+function runScene(name) {
+  clearTimers();
+  chat.innerHTML = ''; qrs.innerHTML = '';
+  activeScene = name;
+
+  // update sidebar
+  document.querySelectorAll('.sc-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('btn-' + name);
+  if (btn) btn.classList.add('active');
+
+  const steps = SCENES[name];
+  if (!steps) return;
+
+  let baseDelay = 0;
+  steps.forEach((step, i) => {
+    const delay = step.delay !== undefined ? step.delay : (i * 1200);
+    if (step.type === 'user') {
+      later(() => { appendMsg('user', step.text); }, delay);
+    } else {
+      later(() => { showTyping(); }, delay);
+      later(() => {
+        appendMsg('bot', step.text || '', step.card ? buildCard(step.card) : '');
+        if (step.qr) setQR(step.qr);
+      }, delay + 650);
+    }
+  });
+}
+
+// ‚îÄ‚îÄ smart free-text reply ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+function onKey(e) { if (e.key === 'Enter') { e.preventDefault(); sendUser(); } }
+
+function sendUser() {
+  const inp = document.getElementById('inp');
+  const txt = inp.value.trim(); if (!txt) return;
+  inp.value = '';
+  appendMsg('user', txt);
+  qrs.innerHTML = '';
+  later(() => { showTyping(); later(() => smartReply(txt.toLowerCase()), 800); }, 250);
+}
+
+function smartReply(t) {
+  if (/repair|motorbike|motorcycle|bike|‡¶¨‡¶æ‡¶á‡¶ï|engine/.test(t)) return runScene('motorcycle');
+  if (/petrol|fuel|gas|octane|cng/.test(t)) return runScene('petrol');
+  if (/sick|health|hospital|doctor|clinic|ill/.test(t)) return runScene('health');
+  if (/day off|rest|break|cannot work|can't work/.test(t)) return runScene('dayoff');
+  if (/fare|calculate|km|kilometer|order pay|underpaid|overpaid/.test(t)) return runScene('fare');
+  if (/goal|income|target|earn|weekly/.test(t)) return runScene('goal');
+  if (/incentive|bonus|platform|foodpanda|pathao|shohoz|grab|pay rate/.test(t)) return runScene('platform');
+  if (/progress|check|today|how much|status/.test(t)) return runScene('reminder');
+  // fallback
+  appendMsg('bot',
+    `I can help with: üéØ Income goal ¬∑ üìä Daily check-in ¬∑ üîß Bike repair ¬∑ ‚õΩ Cheap petrol ¬∑ üè• Health ¬∑ üò¥ Day off ¬∑ üí∞ Fare check ¬∑ ‚ùì Platform Q&amp;A`,
+    '');
+  setQR(['üéØ Set Goal', 'üîß Bike Repair', 'üí∞ Check Fare', 'üìä My Progress']);
+}
+
+// ‚îÄ‚îÄ card builders ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+function buildCard(c) {
+  switch (c.type) {
+
+    case 'progress': {
+      const pct = Math.min(100, Math.round(c.earned / c.goal * 100));
+      return `
+        <div class="prog-card">
+          <div style="font-size:12px;opacity:.85;">Weekly Goal Progress</div>
+          <div style="font-size:22px;font-weight:700;margin:2px 0;">‡ß≥${c.earned.toLocaleString()} <span style="font-size:14px;opacity:.75">/ ‡ß≥${c.goal.toLocaleString()}</span></div>
+          <div class="prog-bar-bg"><div class="prog-bar-fill" style="width:${pct}%"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;opacity:.8;margin-bottom:10px;">
+            <span>${pct}% complete</span><span>Day ${c.day} of 7</span>
+          </div>
+          <div class="prog-grid">
+            <div class="prog-stat"><div class="v">${c.orders}</div><div class="l">Orders today<br><span style="opacity:.7">Need ${c.ordersTarget}/day</span></div></div>
+            <div class="prog-stat"><div class="v">${c.hours}h</div><div class="l">Hours today<br><span style="opacity:.7">Need ${c.hoursTarget}h/day</span></div></div>
+            <div class="prog-stat"><div class="v">‡ß≥${Math.round(c.earned/c.day)}</div><div class="l">Daily avg<br><span style="opacity:.7">Need ‡ß≥1,000</span></div></div>
+          </div>
+        </div>`;
+    }
+
+    case 'reminder': return `
+      <div class="rem-card">
+        <div class="rem-title">üìã Still needed today</div>
+        ${c.items.map(i => `<div class="rem-row"><span>${i.icon}</span><span>${i.text}</span></div>`).join('')}
+      </div>`;
+
+    case 'goal-options': return `
+      <div class="card">
+        <div class="card-title">üìä Choose your weekly goal</div>
+        ${c.items.map(it => `
+          <div class="goal-item" onclick="handleQR(this,'${it.label} ‚Äî ‡ß≥${it.amount}')">
+            <div class="goal-icon">${it.icon}</div>
+            <div class="goal-info"><strong>${it.label}</strong><span>‡ß≥${it.amount}/week ¬∑ ${it.desc}</span></div>
+            <div class="goal-arr">‚Ä∫</div>
+          </div>`).join('')}
+      </div>`;
+
+    case 'daily-plan': return `
+      <div class="plan-card">
+        <div style="font-weight:700;font-size:14px;color:#2e7d32;">‚úÖ Your daily plan for ‡ß≥${c.goal.toLocaleString()}/week</div>
+        <div class="plan-grid">
+          <div class="plan-cell"><div class="v">${c.orders}</div><div class="l">Orders/day</div></div>
+          <div class="plan-cell"><div class="v">${c.hours}h</div><div class="l">Hours/day</div></div>
+          <div class="plan-cell"><div class="v">‡ß≥${c.perDay.toLocaleString()}</div><div class="l">Target/day</div></div>
+          <div class="plan-cell"><div class="v">~‡ß≥${c.perOrder}</div><div class="l">Avg/order</div></div>
+        </div>
+      </div>`;
+
+    case 'locations': return `
+      <div class="card">
+        <div class="card-title">üîß Partner repair shops near you</div>
+        ${c.items.map(l => `
+          <div class="loc-item">
+            <div class="loc-head">
+              <strong style="font-size:13.5px;">${l.name}</strong>
+              <span class="dist-badge">${l.dist}</span>
+            </div>
+            <div style="font-size:12px;color:#65676b;margin:3px 0;">üìç ${l.area} ¬∑ ${l.hours} ¬∑ ${l.stars}</div>
+            <span class="disc-badge">üè∑Ô∏è ${l.discount}</span>
+            <div class="loc-btns">
+              <button class="lb lb-nav" onclick="fakeNav('${l.name}')">üìç Directions</button>
+              <button class="lb lb-call">üìû Call</button>
+            </div>
+          </div>`).join('')}
+      </div>`;
+
+    case 'petrol': return `
+      <div class="card">
+        <div class="card-title">‚õΩ Cheapest petrol near you</div>
+        ${c.items.map(s => `
+          <div class="fuel-item">
+            <div class="fuel-head">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-size:20px;">${s.dot}</span>
+                <strong style="font-size:13.5px;">${s.name}</strong>
+              </div>
+              <span class="fuel-price">${s.price}</span>
+            </div>
+            <div style="font-size:12px;color:#65676b;margin:3px 0 2px 28px;">üìç ${s.area} ¬∑ ${s.dist}</div>
+            <span class="fuel-disc">üéÅ ${s.discount}</span>
+          </div>`).join('')}
+      </div>`;
+
+    case 'health': return `
+      <div class="card">
+        <div class="card-title">üè• Partner health centres</div>
+        ${c.items.map((cl, i) => `
+          <div style="padding:10px 0;${i < c.items.length-1 ? 'border-bottom:1px solid #f0f2f5;' : ''}">
+            <strong style="font-size:13.5px;">${cl.name}</strong>
+            <div style="font-size:12px;color:#65676b;margin:3px 0;">üìç ${cl.area} ¬∑ ${cl.hours}</div>
+            <div style="margin:4px 0;">${cl.platforms.map(p => `<span class="platform-tag tag-${p}">${p}</span>`).join('')}</div>
+            <div style="font-size:12px;background:#e3f2fd;color:#1565c0;padding:4px 9px;border-radius:7px;margin:5px 0;">‚úÖ ${cl.benefit}</div>
+            <div class="loc-btns">
+              <button class="lb lb-nav" style="background:#43a047;border:none;">üìû ${cl.phone}</button>
+              <button class="lb lb-call">üìç Map</button>
+            </div>
+          </div>`).join('')}
+      </div>`;
+
+    case 'dayoff': return `
+      <div class="dayoff-card">
+        <div style="font-weight:700;font-size:14px;color:#6a1b9a;">üîÑ Updated plan after your day off</div>
+        <div class="dayoff-grid">
+          <div class="dc red"><div class="v">‡ß≥${c.remaining.toLocaleString()}</div><div class="l">Still needed</div></div>
+          <div class="dc red"><div class="v">${c.daysLeft} days</div><div class="l">Days left</div></div>
+          <div class="dc blue"><div class="v">‡ß≥${c.newDaily.toLocaleString()}</div><div class="l">New daily target</div></div>
+          <div class="dc blue"><div class="v">${c.newOrders}</div><div class="l">Orders/day</div></div>
+        </div>
+        <div style="background:white;border-radius:8px;padding:8px;margin-top:8px;font-size:12px;color:#65676b;text-align:center;">
+          ‚è∞ +${c.extraHours} extra hours/day vs your usual schedule
+        </div>
+      </div>`;
+
+    case 'fare': return `
+      <div class="fare-card">
+        <div style="font-weight:700;font-size:14px;color:#2e7d32;">üí∞ Fare estimate</div>
+        <div style="font-size:12px;color:#65676b;margin:4px 0 10px;">üìç ${c.from} ‚Üí ${c.to} ¬∑ ${c.km} km ¬∑ ${c.platform}</div>
+        <div class="fare-row"><span style="color:#65676b;">Base rate</span><span>‡ß≥${c.base}</span></div>
+        <div class="fare-row"><span style="color:#65676b;">Distance (${c.km} km √ó ‡ß≥${c.rate}/km)</span><span>‡ß≥${c.distFee}</span></div>
+        <div class="fare-total"><span>Estimated total</span><span>‡ß≥${c.total}</span></div>
+        <div style="background:white;border-radius:8px;padding:8px;margin-top:10px;font-size:12px;text-align:center;color:#65676b;">
+          Normal range: <strong style="color:#050505;">‡ß≥${c.min} ‚Äì ‡ß≥${c.max}</strong>
+        </div>
+      </div>`;
+
+    case 'incentives': return `
+      <div class="card">
+        <div class="card-title">üéØ Current incentive programs</div>
+        ${c.platforms.map(p => `
+          <div class="incentive-section">
+            <div style="margin-bottom:6px;"><span class="platform-tag tag-${p.tag}">${p.name}</span></div>
+            ${p.items.map(it => `<div class="inc-row"><span class="inc-dot">‚Ä¢</span><span>${it}</span></div>`).join('')}
+          </div>`).join('')}
+      </div>`;
+
+    default: return '';
+  }
+}
+
+function fakeNav(name) {
+  appendMsg('bot', `üìç Opening directions to <strong>${name}</strong>‚Ä¶ <br><em style="font-size:12px;color:#65676b;">(Would open Google Maps in the live app)</em>`);
+}
+
+// ‚îÄ‚îÄ scene definitions ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+const SCENES = {
+
+  welcome: [
+    { type:'bot', delay:0,    text:'üëã ‡¶Ü‡¶∏‡ßç‡¶∏‡¶æ‡¶≤‡¶æ‡¶Æ‡ßÅ‡¶Ø‡¶º‡¶æ‡¶≤‡¶æ‡¶á‡¶ï‡ßÅ‡¶Æ! I\'m <strong>RiderBot</strong> ‚Äî your personal assistant for delivery riders in Bangladesh üáßüá©' },
+    { type:'bot', delay:1400, text:'I help you <strong>earn more</strong>, <strong>save money on fuel & repairs</strong>, and <strong>solve problems on the road</strong>. I work with <strong>Foodpanda</strong>, <strong>Pathao</strong> &amp; <strong>Shohoz</strong> riders üõµ' },
+    { type:'bot', delay:2800, text:'What would you like to do today?', qr:['üéØ Set Income Goal','üìä Check Progress','üîß Get Help','üí∞ Check Fare'] }
+  ],
+
+  goal: [
+    { type:'user', delay:0,    text:'üéØ Set Income Goal' },
+    { type:'bot',  delay:900,  text:'Great! Let\'s set your weekly income goal üí™ Based on Dhaka riders, here are popular targets:',
+      card: { type:'goal-options', items:[
+        { icon:'ü•â', label:'Basic',    amount:'5,000', desc:'~8 orders ¬∑ 6 h/day' },
+        { icon:'ü•à', label:'Standard', amount:'7,000', desc:'~11 orders ¬∑ 8 h/day' },
+        { icon:'ü•á', label:'Power Rider', amount:'10,000', desc:'~15 orders ¬∑ 10 h/day' }
+      ]}
+    },
+    { type:'user', delay:2600, text:'ü•à Standard ‚Äî ‡ß≥7,000' },
+    { type:'bot',  delay:3500, text:'‚úÖ Goal set! Here\'s your personalised daily breakdown:',
+      card: { type:'daily-plan', goal:7000, orders:11, hours:8, perDay:1000, perOrder:65 }
+    },
+    { type:'bot',  delay:5000, text:'I\'ll send you a <strong>morning reminder</strong> every day with orders left, hours needed &amp; money to earn. You got this! üí™',
+      qr:['üìä See My Progress','üò¥ Request Day Off','üè† Main Menu']
+    }
+  ],
+
+  reminder: [
+    { type:'bot', delay:0,    text:'‚è∞ <strong>Good morning, Rakib!</strong> It\'s Wednesday 9:05 AM' },
+    { type:'bot', delay:1100, text:'Here\'s your mid-week check-in üìä',
+      card:{ type:'progress', goal:7000, earned:2840, day:3, orders:5, ordersTarget:11, hours:4.5, hoursTarget:8 }
+    },
+    { type:'bot', delay:2500, text:'',
+      card:{ type:'reminder', items:[
+        { icon:'üõµ', text:'6 more orders to hit today\'s target' },
+        { icon:'‚è±Ô∏è', text:'3.5 more hours of active riding' },
+        { icon:'üíµ', text:'Earn ‡ß≥715 more today' },
+        { icon:'üìç', text:'Hotspots right now: Gulshan, Banani, Dhanmondi' }
+      ]}
+    },
+    { type:'bot', delay:4000, text:'üí° <strong>Pro tip:</strong> Lunch rush (12‚Äì2 PM) = most orders! Stack the peak-hour bonus for extra ‡ß≥15/order on Foodpanda.',
+      qr:['‚úÖ Got it!','üò¥ Request Day Off','üó∫Ô∏è Best Zones','üìä Full Stats']
+    }
+  ],
+
+  motorcycle: [
+    { type:'user', delay:0,    text:'üîß My motorcycle needs repair' },
+    { type:'bot',  delay:900,  text:'Oh no! Let\'s get your bike fixed fast so you don\'t lose income üîß Which platform are you on?',
+      qr:['Foodpanda','Pathao','Shohoz','Multiple platforms']
+    },
+    { type:'user', delay:2200, text:'Foodpanda' },
+    { type:'bot',  delay:3100, text:'‚úÖ Foodpanda has <strong>partner repair shops</strong> in Dhaka with <strong>special discounts</strong> for riders:',
+      card:{ type:'locations', items:[
+        { name:'Mirpur Auto Workshop',     area:'Mirpur-10, Dhaka',       dist:'2.3 km', hours:'Open 8AM‚Äì9PM',  stars:'‚≠ê‚≠ê‚≠ê‚≠ê',  discount:'20% off for Foodpanda riders' },
+        { name:'BD Bike Service Center',   area:'Mohakhali, Dhaka',       dist:'3.7 km', hours:'Open 24 hrs',   stars:'‚≠ê‚≠ê‚≠ê‚≠ê‚≠ê', discount:'15% off + free oil check' },
+        { name:'Uttara Motorcycle Care',   area:'Uttara Sector 7, Dhaka', dist:'5.1 km', hours:'Open 9AM‚Äì8PM',  stars:'‚≠ê‚≠ê‚≠ê‚≠ê',  discount:'25% off all services' }
+      ]}
+    },
+    { type:'bot', delay:5500, text:'üí° Show your <strong>Foodpanda rider ID</strong> at the counter to claim your discount.',
+      qr:['üìû Call Workshop','‚¨ÖÔ∏è Back','üè† Main Menu']
+    }
+  ],
+
+  petrol: [
+    { type:'user', delay:0,    text:'‚õΩ Find cheap petrol near me' },
+    { type:'bot',  delay:900,  text:'Smart thinking ‚Äî fuel is one of your biggest costs! Here are the best options near Dhaka right now:',
+      card:{ type:'petrol', items:[
+        { dot:'üü¢', name:'Padma Oil Station',    area:'Farmgate, Dhaka',      dist:'1.2 km', price:'‡ß≥110/L', discount:'‡ß≥5/L off with Pathao rider card' },
+        { dot:'üîµ', name:'Meghna Petroleum',     area:'Mohammadpur, Dhaka',   dist:'2.8 km', price:'‡ß≥108/L', discount:'‡ß≥8/L off for Foodpanda riders' },
+        { dot:'üü°', name:'Jamuna Filling Station',area:'Mirpur Road, Dhaka',  dist:'3.4 km', price:'‡ß≥109/L', discount:'Free air + ‡ß≥3/L off' }
+      ]}
+    },
+    { type:'bot', delay:3000, text:'üí∞ Using partner stations could save you up to <strong>‡ß≥240/week</strong> on fuel alone!',
+      qr:['üìç Navigate to Nearest','üí≥ Show My Discount Code','‚¨ÖÔ∏è Back']
+    }
+  ],
+
+  health: [
+    { type:'user', delay:0,    text:'üè• I\'m not feeling well' },
+    { type:'bot',  delay:900,  text:'So sorry to hear that üòî Your health comes first. Our partner platforms have agreements with these clinics ‚Äî show your <strong>rider ID</strong> for free or discounted care:',
+      card:{ type:'health', items:[
+        { name:'Popular Medical Centre', area:'Dhanmondi, Dhaka',  hours:'8AM‚Äì10PM', platforms:['foodpanda','pathao'],   benefit:'Free GP consultation for riders',          phone:'01711-234567' },
+        { name:'Green Life Hospital',    area:'Tejgaon, Dhaka',    hours:'Open 24h', platforms:['shohoz','foodpanda'],   benefit:'50% off emergency care',                  phone:'01811-345678' },
+        { name:'Anwar Khan Modern',      area:'Mirpur, Dhaka',     hours:'9AM‚Äì9PM',  platforms:['pathao','shohoz'],      benefit:'Discounted medicine + free check-up',     phone:'01911-456789' }
+      ]}
+    },
+    { type:'bot', delay:4000, text:'Should I switch you to <strong>Rest Mode</strong> for today? I\'ll adjust your weekly goal so you don\'t feel pressured üôè',
+      qr:['üò¥ Yes, Rest Today','üí™ I\'ll Work Half Day','üìç Get Directions','‚¨ÖÔ∏è Back']
+    }
+  ],
+
+  dayoff: [
+    { type:'user', delay:0,    text:'üò¥ I need a day off today' },
+    { type:'bot',  delay:900,  text:'No problem at all ‚Äî rest is important! üôè Let me recalculate your plan:',
+      card:{ type:'dayoff', remaining:4160, daysLeft:4, newDaily:1040, newOrders:16, extraHours:1.5 }
+    },
+    { type:'bot',  delay:2400, text:'To still hit <strong>‡ß≥7,000 this week</strong>, you\'ll ride a bit harder over the next 4 days. Can you do that?' },
+    { type:'user', delay:3600, text:'Yes, I can do that' },
+    { type:'bot',  delay:4500, text:'‚úÖ Day off confirmed! Enjoy your rest üòä\n\nI\'ll send a <strong>fresh-start reminder</strong> tomorrow morning with your updated daily targets.',
+      qr:['üôè Thanks!','üìä See New Plan','‚öôÔ∏è Adjust Goal']
+    }
+  ],
+
+  fare: [
+    { type:'user', delay:0,    text:'üí∞ Check if my order fare is correct' },
+    { type:'bot',  delay:900,  text:'Sure! Share the details and I\'ll estimate what you should earn:<br><br>üìç Pickup &amp; delivery zones<br>üìè Distance (km)<br>üè¢ Platform' },
+    { type:'user', delay:2400, text:'Pickup: Gulshan. Drop: Mirpur. ~8 km. Foodpanda.' },
+    { type:'bot',  delay:3400, text:'Calculating‚Ä¶ üßÆ',
+      card:{ type:'fare', from:'Gulshan', to:'Mirpur', km:8, platform:'Foodpanda', base:30, rate:8, distFee:64, total:94, min:85, max:110 }
+    },
+    { type:'bot',  delay:5000, text:'‚ö†Ô∏è If you received <strong>less than ‡ß≥85</strong>, you may have been underpaid. How to dispute:<br><br>1Ô∏è‚É£ Foodpanda app ‚Üí Help ‚Üí Order Issues<br>2Ô∏è‚É£ Select order ‚Üí "Incorrect Earnings"<br>3Ô∏è‚É£ Attach a screenshot of this estimate<br><br>Usually resolved in 24‚Äì48 h.',
+      qr:['üìã Copy Dispute Text','üìû Contact Foodpanda','üí∞ Check Another Order','üè† Main Menu']
+    }
+  ],
+
+  platform: [
+    { type:'user', delay:0,    text:'‚ùì I have a question about incentives' },
+    { type:'bot',  delay:900,  text:'Happy to help! Quick note: I\'m <strong>RiderBot</strong>, an independent assistant ‚Äî not Foodpanda, Pathao, or Shohoz. But I know these platforms well üòä' },
+    { type:'bot',  delay:2200, text:'üìä Here are the current incentive programs in Bangladesh:',
+      card:{ type:'incentives', platforms:[
+        { name:'Foodpanda', tag:'foodpanda', items:['Complete 40 orders ‚Üí ‡ß≥800 bonus','Weekend peak hours: +‡ß≥15/order','Rain bonus: +‡ß≥20/order','New area first delivery: ‡ß≥500'] },
+        { name:'Pathao',    tag:'pathao',    items:['10 orders/day = ‡ß≥200 bonus','Top rider of the week: ‡ß≥1,500','4+ star rating maintained: ‡ß≥100/week','Referral bonus: ‡ß≥500/rider'] },
+        { name:'Shohoz',    tag:'shohoz',    items:['Complete 8 orders ‚Üí ‡ß≥150 bonus','Festival bonus (Eid/Puja): 2√ó pay','5-day streak: ‡ß≥300 bonus','Long-distance bonus: +‡ß≥25/order'] }
+      ]}
+    },
+    { type:'bot', delay:4400, text:'üí° <strong>Pro tip:</strong> Stack bonuses during peak hours. Lunch (12‚Äì2 PM) + rain + Foodpanda streak = up to <strong>+‡ß≥50/order</strong> above base pay!',
+      qr:['üìä Base Pay Rates','‚è±Ô∏è Payment Schedule','üìû Dispute a Payment','üè† Main Menu']
+    }
+  ]
+};
+
+// auto-start
+later(() => runScene('welcome'), 400);
+</script>
+</body>
+</html>
